@@ -1,0 +1,345 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Mobile Legends Clustering Analysis{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h1 class="card-title">
+                    <i class="fas fa-gamepad me-2"></i>
+                    Mobile Legends Player Clustering Analysis
+                </h1>
+                <p class="card-text lead">
+                    Perbandingan Algoritma K-Means dan DBSCAN untuk Segmentasi Pemain Mobile Legends di Wilayah Medan
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Player Profile Search Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-success">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-search me-2"></i>
+                    Player Profile Search
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="searchInput" 
+                                   placeholder="Masukkan Player ID (contoh: 101849453) atau role (Fighter, Mage, Tank, dll)">
+                            <button class="btn btn-success" type="button" onclick="searchPlayer()">
+                                <i class="fas fa-search me-1"></i>Cari Player
+                            </button>
+                        </div>
+                        <small class="text-muted">
+                            Cari berdasarkan Player ID atau role pemain untuk melihat profil dan cluster
+                        </small>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <div class="badge bg-info fs-6">
+                                Total: 245 Players
+                            </div>
+                            <br>
+                            <small class="text-muted">ID Range: 101849453 - 999888777</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search Results -->
+<div class="row mb-4" id="searchResults" style="display: none;">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-users me-2"></i>
+                    Hasil Pencarian
+                </h5>
+            </div>
+            <div class="card-body" id="searchResultsContent">
+                <!-- Search results will be populated here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Player Profile Modal -->
+<div class="modal fade" id="playerProfileModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user me-2"></i>
+                    Player Profile
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="playerProfileContent">
+                <!-- Player profile will be populated here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Error Display -->
+{% if error %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-danger" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Error:</strong> {{ error }}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Statistics Cards -->
+{% if stats %}
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-users fa-2x text-info mb-2"></i>
+                <h4>{{ stats.total_players }}</h4>
+                <p class="text-muted">Total Players</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-trophy fa-2x text-warning mb-2"></i>
+                <h4>{{ stats.avg_win_rate }}%</h4>
+                <p class="text-muted">Avg Win Rate</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-chess fa-2x text-success mb-2"></i>
+                <h4>{{ stats.roles_count }}</h4>
+                <p class="text-muted">Roles</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-cogs fa-2x text-primary mb-2"></i>
+                <h4>{{ stats.features_count }}</h4>
+                <p class="text-muted">Features</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Algorithm Comparison Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-scatter me-2"></i>
+                    Algorithm Comparison Dashboard
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Algorithm Selection -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-info text-white">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-circle-nodes me-1"></i>
+                                    K-Means Parameters
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="kmeansCluster" class="form-label">Number of Clusters</label>
+                                    <input type="range" class="form-range" id="kmeansCluster" min="2" max="10" value="4">
+                                    <div class="d-flex justify-content-between">
+                                        <small>2</small>
+                                        <small id="kmeansClusterValue">4</small>
+                                        <small>10</small>
+                                    </div>
+                                </div>
+                                <button class="btn btn-info" onclick="runKMeans()">
+                                    <i class="fas fa-play me-1"></i>Run K-Means
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-warning text-dark">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-project-diagram me-1"></i>
+                                    DBSCAN Parameters
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="dbscanEps" class="form-label">Eps (ε)</label>
+                                    <input type="range" class="form-range" id="dbscanEps" min="0.1" max="1.0" step="0.1" value="0.5">
+                                    <div class="d-flex justify-content-between">
+                                        <small>0.1</small>
+                                        <small id="dbscanEpsValue">0.5</small>
+                                        <small>1.0</small>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="dbscanMinSamples" class="form-label">Min Samples</label>
+                                    <input type="range" class="form-range" id="dbscanMinSamples" min="3" max="15" value="5">
+                                    <div class="d-flex justify-content-between">
+                                        <small>3</small>
+                                        <small id="dbscanMinSamplesValue">5</small>
+                                        <small>15</small>
+                                    </div>
+                                </div>
+                                <button class="btn btn-warning text-dark" onclick="runDBSCAN()">
+                                    <i class="fas fa-play me-1"></i>Run DBSCAN
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visualization Area -->
+                <div class="row">
+                    <div class="col-12">
+                        <div id="clusteringPlot" style="height: 500px;">
+                            <div class="d-flex align-items-center justify-content-center h-100 text-muted">
+                                <div class="text-center">
+                                    <i class="fas fa-chart-scatter fa-3x mb-3"></i>
+                                    <p>Select an algorithm and click "Run" to see clustering results</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Metrics Display -->
+                <div class="row mt-3" id="metricsRow" style="display: none;">
+                    <div class="col-md-4">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 id="algorithmName">Algorithm</h5>
+                                <p class="text-muted">Current Algorithm</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 id="silhouetteScore">-</h5>
+                                <p class="text-muted">Silhouette Score</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 id="daviesBouldinScore">-</h5>
+                                <p class="text-muted">Davies-Bouldin Index</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cluster Analysis Section -->
+<div class="row mb-4" id="clusterAnalysisSection" style="display: none;">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-users-cog me-2"></i>
+                    Cluster Analysis
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="clusterProfiles">
+                    <!-- Cluster profiles will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Research Conclusion Section - Dynamic, appears after running tests -->
+<div id="researchConclusion" class="row mb-4" style="display: none;">
+    <div class="col-12">
+        <div class="card border-success">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    Kesimpulan Penelitian Berdasarkan Hasil Uji
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="conclusionContent">
+                    <!-- Content will be populated dynamically based on test results -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Spinner -->
+<div id="loadingSpinner" class="d-none">
+    <div class="d-flex justify-content-center align-items-center position-fixed top-0 start-0 w-100 h-100" 
+         style="background-color: rgba(0,0,0,0.5); z-index: 9999;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Initialize slider event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // K-Means cluster slider
+    const kmeansSlider = document.getElementById('kmeansCluster');
+    const kmeansValue = document.getElementById('kmeansClusterValue');
+    kmeansSlider.addEventListener('input', function() {
+        kmeansValue.textContent = this.value;
+    });
+
+    // DBSCAN eps slider
+    const epsSlider = document.getElementById('dbscanEps');
+    const epsValue = document.getElementById('dbscanEpsValue');
+    epsSlider.addEventListener('input', function() {
+        epsValue.textContent = this.value;
+    });
+
+    // DBSCAN min samples slider
+    const minSamplesSlider = document.getElementById('dbscanMinSamples');
+    const minSamplesValue = document.getElementById('dbscanMinSamplesValue');
+    minSamplesSlider.addEventListener('input', function() {
+        minSamplesValue.textContent = this.value;
+    });
+});
+</script>
+{% endblock %}

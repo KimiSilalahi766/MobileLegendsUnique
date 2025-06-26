@@ -1,0 +1,939 @@
+{% extends "base.html" %}
+
+{% block title %}Data Comparison - Primary vs Secondary Data Analysis{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h1 class="card-title">
+                    <i class="fas fa-database me-2"></i>
+                    Analisis Perbandingan Data Primer vs Sekunder
+                </h1>
+                <p class="card-text lead">
+                    Perbandingan karakteristik, kontribusi, dan kualitas data primer (kuesioner) vs data sekunder (server analytics)
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Analysis Controls -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Analisis Data Sources
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6>Test Data Secara Terpisah:</h6>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-success" onclick="testPrimaryData()">
+                                <i class="fas fa-clipboard-list me-1"></i>Test Data Primer Saja
+                            </button>
+                            <button class="btn btn-warning" onclick="testSecondaryData()">
+                                <i class="fas fa-server me-1"></i>Test Data Sekunder Saja
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Analisis Perbandingan:</h6>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary" onclick="analyzeDataSources()">
+                                <i class="fas fa-balance-scale me-1"></i>Bandingkan Keduanya
+                            </button>
+                            <button class="btn btn-info" onclick="testIntegratedData()">
+                                <i class="fas fa-plus-circle me-1"></i>Test Data Terintegrasi
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Informasi:</h6>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-secondary" onclick="showDataTypes()">
+                                <i class="fas fa-info-circle me-1"></i>Penjelasan Jenis Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data Types Explanation -->
+<div class="row mb-4" id="dataTypesSection" style="display: none;">
+    <div class="col-md-6">
+        <div class="card border-success">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0">
+                    <i class="fas fa-clipboard-list me-1"></i>
+                    Data Primer (Survey/Kuesioner)
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><strong>Sumber:</strong> Kuesioner langsung ke pemain ML</li>
+                    <li><strong>Metode:</strong> Survey terstruktur dengan ID player asli</li>
+                    <li><strong>Keunggulan:</strong> Data sesuai kebutuhan penelitian spesifik</li>
+                    <li><strong>Kontrol Kualitas:</strong> Tinggi (peneliti mengontrol)</li>
+                    <li><strong>Bias:</strong> Response bias, sampling bias</li>
+                    <li><strong>Biaya:</strong> Tinggi (waktu + tenaga)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0">
+                    <i class="fas fa-server me-1"></i>
+                    Data Sekunder (Server Analytics)
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><strong>Sumber:</strong> API game server, analytics platform</li>
+                    <li><strong>Metode:</strong> Ekstraksi otomatis dari database</li>
+                    <li><strong>Keunggulan:</strong> Real-time, volume besar, otomatis</li>
+                    <li><strong>Kontrol Kualitas:</strong> Medium (bergantung sistem)</li>
+                    <li><strong>Bias:</strong> System bias, availability bias</li>
+                    <li><strong>Biaya:</strong> Rendah (otomatis)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Test Results Section -->
+<div class="row" id="testResults" style="display: none;">
+    <!-- Data Info Card -->
+    <div class="col-12 mb-4">
+        <div class="card" id="dataInfoCard">
+            <div class="card-header">
+                <h5 class="card-title mb-0" id="dataInfoTitle">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Informasi Data
+                </h5>
+            </div>
+            <div class="card-body" id="dataInfoBody">
+                <!-- Will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Clustering Results -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-sitemap me-2"></i>
+                    K-Means Clustering
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="kmeansResults">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+                <div id="kmeansPlot" style="height: 400px;">
+                    <!-- Plotly chart will be rendered here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-project-diagram me-2"></i>
+                    DBSCAN Clustering
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="dbscanResults">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+                <div id="dbscanPlot" style="height: 400px;">
+                    <!-- Plotly chart will be rendered here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Insights (for secondary/integrated data) -->
+    <div class="col-12" id="additionalInsights" style="display: none;">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0" id="insightsTitle">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    Additional Insights
+                </h5>
+            </div>
+            <div class="card-body" id="insightsBody">
+                <!-- Will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Comparison Results -->
+<div class="row" id="comparisonResults" style="display: none;">
+    <!-- Primary vs Secondary Comparison -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-balance-scale me-2"></i>
+                    Perbandingan Karakteristik Data
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-dark table-striped" id="comparisonTable">
+                        <thead>
+                            <tr>
+                                <th>Aspek</th>
+                                <th>Data Primer (Anda)</th>
+                                <th>Data Sekunder</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Clustering Results -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-sitemap me-2"></i>
+                    Clustering dengan Data Terintegrasi
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="enhancedClusteringResults">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Meta Insights -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-trophy me-2"></i>
+                    Meta Game Insights (Sekunder)
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="metaInsights">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Integration Benefits -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-plus-circle me-2"></i>
+                    Kontribusi Integrasi Data Primer + Sekunder
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <h6>Validitas Lebih Tinggi</h6>
+                                <p class="small">Data primer memberikan kontrol kualitas, sekunder memberikan skala dan konteks</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <h6>Insight Lebih Mendalam</h6>
+                                <p class="small">Kombinasi data behavioral (sekunder) dengan performa subjektif (primer)</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-info text-white">
+                            <div class="card-body text-center">
+                                <h6>Clustering Lebih Akurat</h6>
+                                <p class="small">Features tambahan dari data sekunder meningkatkan kualitas segmentasi</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data Analysis Research Conclusion - Dynamic, appears after running tests -->
+<div id="dataAnalysisConclusion" class="row mb-4" style="display: none;">
+    <div class="col-12">
+        <div class="card border-primary">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-graduation-cap me-2"></i>
+                    Kesimpulan Analisis Data Berdasarkan Hasil Uji
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="dataAnalysisConclusionContent">
+                    <!-- Content will be populated dynamically based on test results -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Spinner -->
+<div id="loadingSpinner" class="d-none">
+    <div class="d-flex justify-content-center align-items-center position-fixed top-0 start-0 w-100 h-100" 
+         style="background-color: rgba(0,0,0,0.5); z-index: 9999;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function showDataTypes() {
+    const section = document.getElementById('dataTypesSection');
+    if (section.style.display === 'none') {
+        section.style.display = 'block';
+    } else {
+        section.style.display = 'none';
+    }
+}
+
+function testPrimaryData() {
+    showLoading(true);
+    hideAllResults();
+    
+    fetch('/test_primary_data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        showLoading(false);
+        if (data.success) {
+            displayTestResults(data);
+        } else {
+            showError('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        showLoading(false);
+        showError('Network Error: ' + error.message);
+    });
+}
+
+function testSecondaryData() {
+    showLoading(true);
+    hideAllResults();
+    
+    fetch('/test_secondary_data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('HTTP ' + response.status);
+        }
+        return response.text();
+    })
+    .then(text => {
+        showLoading(false);
+        try {
+            const data = JSON.parse(text);
+            if (data.success) {
+                displayTestResults(data);
+            } else {
+                showError('Error: ' + data.error);
+            }
+        } catch (parseError) {
+            console.error('JSON Parse Error:', parseError);
+            console.error('Response text:', text.substring(0, 500));
+            showError('Response parsing error. Check console for details.');
+        }
+    })
+    .catch(error => {
+        showLoading(false);
+        showError('Network Error: ' + error.message);
+    });
+}
+
+function testIntegratedData() {
+    showLoading(true);
+    hideAllResults();
+    
+    fetch('/test_integrated_data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        showLoading(false);
+        if (data.success) {
+            displayIntegratedResults(data);
+        } else {
+            showError('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        showLoading(false);
+        showError('Network Error: ' + error.message);
+    });
+}
+
+function analyzeDataSources() {
+    showLoading(true);
+    hideAllResults();
+    
+    fetch('/analyze_data_sources', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        showLoading(false);
+        if (data.success) {
+            displayComparisonResults(data);
+        } else {
+            showError('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        showLoading(false);
+        showError('Network Error: ' + error.message);
+    });
+}
+
+function hideAllResults() {
+    document.getElementById('testResults').style.display = 'none';
+    document.getElementById('comparisonResults').style.display = 'none';
+    document.getElementById('additionalInsights').style.display = 'none';
+}
+
+function displayTestResults(data) {
+    // Show test results section
+    document.getElementById('testResults').style.display = 'block';
+    
+    // Set card colors based on data type
+    const dataInfoCard = document.getElementById('dataInfoCard');
+    if (data.data_type === 'primary') {
+        dataInfoCard.className = 'card border-success';
+        document.getElementById('dataInfoTitle').innerHTML = 
+            '<i class="fas fa-clipboard-list me-2"></i>Data Primer - Test Results';
+    } else if (data.data_type === 'secondary') {
+        dataInfoCard.className = 'card border-warning';
+        document.getElementById('dataInfoTitle').innerHTML = 
+            '<i class="fas fa-server me-2"></i>Data Sekunder - Test Results';
+    }
+    
+    // Populate data info
+    const dataInfoBody = document.getElementById('dataInfoBody');
+    dataInfoBody.innerHTML = `
+        <div class="row">
+            <div class="col-md-3">
+                <strong>Sumber:</strong><br>
+                <small class="text-muted">${data.data_info.source}</small>
+            </div>
+            <div class="col-md-3">
+                <strong>Ukuran Sample:</strong><br>
+                <span class="badge bg-info">${data.data_info.sample_size} data points</span>
+            </div>
+            <div class="col-md-6">
+                <strong>Features:</strong><br>
+                <small class="text-muted">${data.data_info.features.join(', ')}</small>
+            </div>
+        </div>
+        <div class="mt-3">
+            <p class="mb-0">${data.data_info.description}</p>
+        </div>
+    `;
+    
+    // Display K-Means results
+    document.getElementById('kmeansResults').innerHTML = `
+        <div class="row text-center mb-3">
+            <div class="col-4">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h6>Clusters</h6>
+                        <h4>${data.kmeans.n_clusters}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <h6>Silhouette</h6>
+                        <h4>${data.kmeans.metrics.silhouette_score.toFixed(3)}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card bg-secondary text-white">
+                    <div class="card-body">
+                        <h6>Davies-Bouldin</h6>
+                        <h4>${data.kmeans.metrics.davies_bouldin_score.toFixed(3)}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Display DBSCAN results
+    document.getElementById('dbscanResults').innerHTML = `
+        <div class="row text-center mb-3">
+            <div class="col-4">
+                <div class="card bg-warning text-dark">
+                    <div class="card-body">
+                        <h6>Clusters</h6>
+                        <h4>${data.dbscan.n_clusters}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <h6>Silhouette</h6>
+                        <h4>${data.dbscan.metrics.silhouette_score.toFixed(3)}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card bg-secondary text-white">
+                    <div class="card-body">
+                        <h6>Davies-Bouldin</h6>
+                        <h4>${data.dbscan.metrics.davies_bouldin_score.toFixed(3)}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Update dynamic conclusion for Data Analysis
+    updateDataAnalysisConclusion(data.data_type, data);
+    
+    // Render plots with error handling
+    try {
+        const kmeansData = typeof data.kmeans.plot === 'string' ? JSON.parse(data.kmeans.plot) : data.kmeans.plot;
+        Plotly.newPlot('kmeansPlot', kmeansData.data, kmeansData.layout, {responsive: true});
+    } catch (error) {
+        console.error('K-Means plot error:', error);
+        document.getElementById('kmeansPlot').innerHTML = '<p class="text-danger">Error rendering K-Means plot</p>';
+    }
+    
+    try {
+        const dbscanData = typeof data.dbscan.plot === 'string' ? JSON.parse(data.dbscan.plot) : data.dbscan.plot;
+        Plotly.newPlot('dbscanPlot', dbscanData.data, dbscanData.layout, {responsive: true});
+    } catch (error) {
+        console.error('DBSCAN plot error:', error);
+        document.getElementById('dbscanPlot').innerHTML = '<p class="text-danger">Error rendering DBSCAN plot</p>';
+    }
+    
+    // Show additional insights for secondary data
+    if (data.data_type === 'secondary' && data.meta_insights) {
+        showSecondaryInsights(data.meta_insights);
+    }
+}
+
+function displayIntegratedResults(data) {
+    // Show test results section
+    document.getElementById('testResults').style.display = 'block';
+    
+    // Set card color for integrated data
+    const dataInfoCard = document.getElementById('dataInfoCard');
+    dataInfoCard.className = 'card border-info';
+    document.getElementById('dataInfoTitle').innerHTML = 
+        '<i class="fas fa-plus-circle me-2"></i>Data Terintegrasi - Test Results';
+    
+    // Populate data info
+    const dataInfoBody = document.getElementById('dataInfoBody');
+    dataInfoBody.innerHTML = `
+        <div class="row">
+            <div class="col-md-3">
+                <strong>Sumber:</strong><br>
+                <small class="text-muted">${data.data_info.source}</small>
+            </div>
+            <div class="col-md-3">
+                <strong>Ukuran Sample:</strong><br>
+                <span class="badge bg-info">${data.data_info.sample_size} data points</span>
+            </div>
+            <div class="col-md-6">
+                <strong>Features Count:</strong><br>
+                <span class="badge bg-success">${data.data_info.features.length} features</span>
+            </div>
+        </div>
+        <div class="mt-3">
+            <p class="mb-0">${data.data_info.description}</p>
+        </div>
+    `;
+    
+    // Display enhanced clustering results
+    if (data.enhanced_clustering) {
+        document.getElementById('kmeansResults').innerHTML = `
+            <div class="text-center">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h6>Enhanced K-Means</h6>
+                        <h4>${data.enhanced_clustering.kmeans.n_clusters} clusters</h4>
+                        <p>Silhouette: ${data.enhanced_clustering.kmeans.silhouette_score.toFixed(3)}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('dbscanResults').innerHTML = `
+            <div class="text-center">
+                <div class="card bg-warning text-dark">
+                    <div class="card-body">
+                        <h6>Enhanced DBSCAN</h6>
+                        <h4>${data.enhanced_clustering.dbscan.n_clusters} clusters</h4>
+                        <p>Silhouette: ${data.enhanced_clustering.dbscan.silhouette_score.toFixed(3)}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Show integration benefits
+    showIntegrationBenefits(data.integration_benefits);
+    
+    // Update dynamic conclusion for integrated data
+    updateDataAnalysisConclusion('integrated', data);
+}
+
+function showSecondaryInsights(insights) {
+    document.getElementById('additionalInsights').style.display = 'block';
+    document.getElementById('insightsTitle').innerHTML = 
+        '<i class="fas fa-trophy me-2"></i>Meta Game Insights';
+    
+    document.getElementById('insightsBody').innerHTML = `
+        <div class="row">
+            <div class="col-md-4">
+                <h6><i class="fas fa-crown me-1"></i>Top Tier Heroes:</h6>
+                <div class="mb-3">
+                    ${insights.top_tier_heroes.map(hero => 
+                        `<span class="badge bg-warning text-dark me-1">${hero}</span>`
+                    ).join('')}
+                </div>
+            </div>
+            <div class="col-md-4">
+                <h6><i class="fas fa-ban me-1"></i>Most Banned:</h6>
+                <ul class="list-unstyled">
+                    ${insights.most_banned.slice(0, 3).map(item => 
+                        `<li>${item.hero_name}: ${item.ban_rate_percent.toFixed(1)}%</li>`
+                    ).join('')}
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h6><i class="fas fa-trophy me-1"></i>Highest Win Rate:</h6>
+                <ul class="list-unstyled">
+                    ${insights.highest_winrate.slice(0, 3).map(item => 
+                        `<li>${item.hero_name}: ${item.win_rate_percent.toFixed(1)}%</li>`
+                    ).join('')}
+                </ul>
+            </div>
+        </div>
+    `;
+}
+
+function showIntegrationBenefits(benefits) {
+    document.getElementById('additionalInsights').style.display = 'block';
+    document.getElementById('insightsTitle').innerHTML = 
+        '<i class="fas fa-plus-circle me-2"></i>Keuntungan Integrasi Data';
+    
+    document.getElementById('insightsBody').innerHTML = `
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card bg-primary text-white">
+                    <div class="card-body text-center">
+                        <h6>Kelengkapan</h6>
+                        <p class="small">${benefits.completeness}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-success text-white">
+                    <div class="card-body text-center">
+                        <h6>Akurasi</h6>
+                        <p class="small">${benefits.accuracy}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-info text-white">
+                    <div class="card-body text-center">
+                        <h6>Kedalaman</h6>
+                        <p class="small">${benefits.depth}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function displayComparisonResults(data) {
+    // Show results section
+    document.getElementById('comparisonResults').style.display = 'block';
+    
+    // Populate comparison table
+    populateComparisonTable(data.comparison);
+    
+    // Display enhanced clustering results
+    displayEnhancedClustering(data.enhanced_clustering);
+    
+    // Display meta insights
+    displayMetaInsights(data.meta_insights);
+}
+
+function populateComparisonTable(comparison) {
+    const tbody = document.querySelector('#comparisonTable tbody');
+    tbody.innerHTML = '';
+    
+    const aspects = [
+        ['Sumber Data', comparison.primary_data.source, comparison.secondary_data.source],
+        ['Metode Pengumpulan', comparison.primary_data.collection_method, comparison.secondary_data.collection_method],
+        ['Ukuran Sample', comparison.primary_data.sample_size, comparison.secondary_data.sample_size],
+        ['Kualitas Data', comparison.primary_data.data_quality, comparison.secondary_data.data_quality],
+        ['Potensi Bias', comparison.primary_data.bias_potential, comparison.secondary_data.bias_potential],
+        ['Biaya Pengumpulan', comparison.primary_data.cost, comparison.secondary_data.cost],
+        ['Ketepatan Waktu', comparison.primary_data.timeliness, comparison.secondary_data.timeliness]
+    ];
+    
+    aspects.forEach(([aspect, primary, secondary]) => {
+        const row = tbody.insertRow();
+        row.innerHTML = `
+            <td><strong>${aspect}</strong></td>
+            <td>${primary}</td>
+            <td>${secondary}</td>
+        `;
+    });
+}
+
+function displayEnhancedClustering(clustering) {
+    if (!clustering) return;
+    
+    const container = document.getElementById('enhancedClusteringResults');
+    container.innerHTML = `
+        <div class="row">
+            <div class="col-6 text-center">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h6>K-Means Enhanced</h6>
+                        <h4>${clustering.kmeans.n_clusters}</h4>
+                        <small>Clusters</small>
+                        <p class="mt-2">Silhouette: ${clustering.kmeans.silhouette_score.toFixed(3)}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 text-center">
+                <div class="card bg-warning text-dark">
+                    <div class="card-body">
+                        <h6>DBSCAN Enhanced</h6>
+                        <h4>${clustering.dbscan.n_clusters}</h4>
+                        <small>Clusters</small>
+                        <p class="mt-2">Silhouette: ${clustering.dbscan.silhouette_score.toFixed(3)}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mt-3">
+            <small class="text-muted">
+                <i class="fas fa-info-circle me-1"></i>
+                Features: ${clustering.features_used.join(', ')}
+            </small>
+        </div>
+    `;
+}
+
+function displayMetaInsights(insights) {
+    if (!insights) return;
+    
+    const container = document.getElementById('metaInsights');
+    container.innerHTML = `
+        <div class="mb-3">
+            <h6><i class="fas fa-crown me-1"></i>Top Tier Heroes:</h6>
+            <div>
+                ${insights.top_tier_heroes.map(hero => 
+                    `<span class="badge bg-warning text-dark me-1">${hero}</span>`
+                ).join('')}
+            </div>
+        </div>
+        <div class="mb-3">
+            <h6><i class="fas fa-ban me-1"></i>Most Banned Heroes:</h6>
+            <ul class="list-unstyled">
+                ${insights.most_banned.map(item => 
+                    `<li>${item.hero_name}: ${item.ban_rate_percent.toFixed(1)}%</li>`
+                ).join('')}
+            </ul>
+        </div>
+        <div class="mb-3">
+            <h6><i class="fas fa-trophy me-1"></i>Highest Win Rate:</h6>
+            <ul class="list-unstyled">
+                ${insights.highest_winrate.map(item => 
+                    `<li>${item.hero_name}: ${item.win_rate_percent.toFixed(1)}%</li>`
+                ).join('')}
+            </ul>
+        </div>
+        <div>
+            <small class="text-muted">
+                Average Meta Score: ${insights.meta_score_avg.toFixed(1)}/100
+            </small>
+        </div>
+    `;
+}
+
+function showLoading(show) {
+    const spinner = document.getElementById('loadingSpinner');
+    if (show) {
+        spinner.classList.remove('d-none');
+    } else {
+        spinner.classList.add('d-none');
+    }
+}
+
+function showError(message) {
+    alert(message);
+}
+
+function updateDataAnalysisConclusion(dataType, testData) {
+    const conclusionDiv = document.getElementById('dataAnalysisConclusion');
+    const contentDiv = document.getElementById('dataAnalysisConclusionContent');
+    
+    if (!window.dataAnalysisResults) {
+        window.dataAnalysisResults = {};
+    }
+    
+    window.dataAnalysisResults[dataType] = testData;
+    
+    // Show conclusion after first test
+    conclusionDiv.style.display = 'block';
+    
+    let conclusionHTML = '<div class="row">';
+    
+    // Data source analysis based on actual test results
+    if (window.dataAnalysisResults.primary) {
+        const primary = window.dataAnalysisResults.primary;
+        conclusionHTML += '<div class="col-md-4">';
+        conclusionHTML += '<h6><i class="fas fa-clipboard-list me-1"></i> Data Primer (Hasil Uji)</h6>';
+        conclusionHTML += `<p class="mb-2"><strong>Sample:</strong> ${primary.data_info.sample_size} pemain autentik<br>`;
+        conclusionHTML += `<strong>K-Means:</strong> ${primary.kmeans.n_clusters} cluster, Score: ${primary.kmeans.metrics.silhouette_score.toFixed(3)}<br>`;
+        conclusionHTML += `<strong>DBSCAN:</strong> ${primary.dbscan.n_clusters} cluster, Score: ${primary.dbscan.metrics.silhouette_score.toFixed(3)}</p>`;
+        conclusionHTML += '<p class="mb-0"><strong>Status:</strong> Implementasi berhasil dengan visualisasi lengkap</p>';
+        conclusionHTML += '</div>';
+    }
+    
+    if (window.dataAnalysisResults.secondary) {
+        const secondary = window.dataAnalysisResults.secondary;
+        conclusionHTML += '<div class="col-md-4">';
+        conclusionHTML += '<h6><i class="fas fa-server me-1"></i> Data Sekunder (Hasil Uji)</h6>';
+        conclusionHTML += `<p class="mb-2"><strong>Sample:</strong> ${secondary.data_info.sample_size} data simulasi<br>`;
+        conclusionHTML += `<strong>K-Means:</strong> ${secondary.kmeans.n_clusters} cluster, Score: ${secondary.kmeans.metrics.silhouette_score.toFixed(3)}<br>`;
+        conclusionHTML += `<strong>DBSCAN:</strong> ${secondary.dbscan.n_clusters} cluster, Score: ${secondary.dbscan.metrics.silhouette_score.toFixed(3)}</p>`;
+        conclusionHTML += '<p class="mb-0"><strong>Catatan:</strong> Data simulasi untuk demonstrasi konsep</p>';
+        conclusionHTML += '</div>';
+    }
+    
+    if (window.dataAnalysisResults.integrated) {
+        const integrated = window.dataAnalysisResults.integrated;
+        conclusionHTML += '<div class="col-md-4">';
+        conclusionHTML += '<h6><i class="fas fa-plus-circle me-1"></i> Data Terintegrasi (Hasil Uji)</h6>';
+        conclusionHTML += `<p class="mb-2"><strong>Sample:</strong> ${integrated.data_info.sample_size} data gabungan<br>`;
+        conclusionHTML += `<strong>K-Means:</strong> ${integrated.enhanced_clustering.kmeans.n_clusters} cluster, Score: ${integrated.enhanced_clustering.kmeans.silhouette_score.toFixed(3)}<br>`;
+        conclusionHTML += `<strong>DBSCAN:</strong> ${integrated.enhanced_clustering.dbscan.n_clusters} cluster, Score: ${integrated.enhanced_clustering.dbscan.silhouette_score.toFixed(3)}</p>`;
+        conclusionHTML += '<p class="mb-0"><strong>Benefit:</strong> Kombinasi data primer + simulasi sekunder</p>';
+        conclusionHTML += '</div>';
+    }
+    
+    conclusionHTML += '</div>';
+    
+    // Final conclusion based on actual test results
+    let bestDataType = '';
+    let bestScore = 0;
+    let bestAlgorithm = '';
+    
+    Object.keys(window.dataAnalysisResults).forEach(type => {
+        const data = window.dataAnalysisResults[type];
+        if (type === 'integrated') {
+            if (data.enhanced_clustering.kmeans.silhouette_score > bestScore) {
+                bestScore = data.enhanced_clustering.kmeans.silhouette_score;
+                bestDataType = type;
+                bestAlgorithm = 'K-Means';
+            }
+            if (data.enhanced_clustering.dbscan.silhouette_score > bestScore) {
+                bestScore = data.enhanced_clustering.dbscan.silhouette_score;
+                bestDataType = type;
+                bestAlgorithm = 'DBSCAN';
+            }
+        } else {
+            if (data.kmeans.metrics.silhouette_score > bestScore) {
+                bestScore = data.kmeans.metrics.silhouette_score;
+                bestDataType = type;
+                bestAlgorithm = 'K-Means';
+            }
+            if (data.dbscan.metrics.silhouette_score > bestScore) {
+                bestScore = data.dbscan.metrics.silhouette_score;
+                bestDataType = type;
+                bestAlgorithm = 'DBSCAN';
+            }
+        }
+    });
+    
+    if (bestDataType) {
+        conclusionHTML += `<div class="alert alert-info mt-3 mb-0">`;
+        conclusionHTML += `<i class="fas fa-lightbulb me-1"></i>`;
+        conclusionHTML += `<strong>Kesimpulan Berdasarkan Hasil Uji:</strong> ${bestAlgorithm} pada data ${bestDataType} `;
+        conclusionHTML += `memberikan hasil terbaik dengan Silhouette Score ${bestScore.toFixed(3)}. `;
+        
+        if (bestDataType === 'primary') {
+            conclusionHTML += `Data primer autentik terbukti memberikan clustering yang valid dan dapat diandalkan untuk segmentasi pemain Mobile Legends.`;
+        } else if (bestDataType === 'integrated') {
+            conclusionHTML += `Integrasi data primer dengan data simulasi sekunder meningkatkan kualitas clustering untuk analisis yang lebih komprehensif.`;
+        } else {
+            conclusionHTML += `Data simulasi sekunder berhasil mendemonstrasikan konsep clustering untuk keperluan pengembangan sistem.`;
+        }
+        
+        conclusionHTML += `</div>`;
+    }
+    
+    contentDiv.innerHTML = conclusionHTML;
+}
+</script>
+{% endblock %}
