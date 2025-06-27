@@ -8,7 +8,7 @@ Comprehensive Flask-based web application for comparing K-Means and DBSCAN clust
 🎮 A web app to analyze and predict Mobile Legends heroes using machine learning (Flask + scikit-learn).
 
 🚀 **Live App:**  
-👉 [Click here to open the website](https://mobilelegends-analyzer.up.railway.app)
+👉 [Click here to open the website](https://mobilelegendsunique.up.railway.app/))
 
 ## Features
 - **Clustering Analysis**: K-Means vs DBSCAN comparison with 8 statistical metrics
