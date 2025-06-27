@@ -64,3 +64,10 @@ python main.py
 4. Access Academic Research tools for statistical validation
 
 Built with Flask, scikit-learn, and advanced statistical validation for academic research.
+
+## ⚠️ License & Usage
+
+This project is under a custom license.  
+You are **not allowed** to reuse, reupload, or distribute this code for your own use **without explicit permission** from the author.
+
+Please contact me for collaboration or permission.
