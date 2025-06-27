@@ -3,6 +3,13 @@
 ## Overview
 Comprehensive Flask-based web application for comparing K-Means and DBSCAN clustering algorithms on Mobile Legends player data from Medan region.
 
+# MobileLegendsUnique
+
+🎮 A web app to analyze and predict Mobile Legends heroes using machine learning (Flask + scikit-learn).
+
+🚀 **Live App:**  
+👉 [Click here to open the website](https://mobilelegends-analyzer.up.railway.app)
+
 ## Features
 - **Clustering Analysis**: K-Means vs DBSCAN comparison with 8 statistical metrics
 - **Draft Pick System**: AI-powered draft advisor with 129 heroes
